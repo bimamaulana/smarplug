@@ -27,8 +27,10 @@ void setup() {
   // prepare LED
   pinMode(D5, OUTPUT);
   pinMode(D4, OUTPUT);
+  pinMode(D6, OUTPUT);
   digitalWrite(D4, LOW);
   digitalWrite(D5, LOW);
+  digitalWrite(D6, LOW);
 
   // Connect to WiFi network
   Serial.println();
@@ -72,28 +74,34 @@ void loop() {
   // Match the request
   int val1;
   int val2;
-  if (req.indexOf(F("/gpio/0")) != -1) {
+  int val3;
+  if (req.indexOf(F("/gpio/reset")) != -1) {
     val1 = LOW;
     val2 = LOW;
-  } else if (req.indexOf(F("/gpio/1")) != -1) {
+    val3 = LOW;
+  } else if (req.indexOf(F("/gpio/d5")) != -1) {
     val1 = HIGH;
     val2 = digitalRead(D4);
-  } else if (req.indexOf(F("/gpio/2")) != -1) {
+    val3 = digitalRead(D6);
+  } else if (req.indexOf(F("/gpio/d4")) != -1) {
     val1 = digitalRead(D5);
     val2 = HIGH;
-  } else if (req.indexOf(F("/gpio/3")) != -1) {
-    val1 = HIGH;
-    val2 = HIGH; 
+    val3 = digitalRead(D6);
+  } else if (req.indexOf(F("/gpio/d6")) != -1) {
+    val3 = HIGH;
+    val2 = digitalRead(D4);
+    val1 = digitalRead(D5); 
   } else {
     Serial.println(F("invalid request"));
     val1 = digitalRead(D5);
     val2 = digitalRead(D4);
+    val3 = digitalRead(D6);
   }
 
   // Set LED according to the request
   digitalWrite(D5, val1);
   digitalWrite(D4, val2);
-
+  digitalWrite(D6, val3);
   // read/ignore the rest of the request
   // do not client.flush(): it is for output only, see below
   while (client.available()) {
@@ -111,19 +119,23 @@ void loop() {
   client.print(F("D4 is now "));
   client.print((val2) ? F("high") : F("low"));
   client.print(F("\r\n"));
+  client.print(F("D6 is now "));
+  client.print((val3) ? F("high") : F("low"));
   client.print(F("<br><br><button onClick=\"window.location.href='http://"));
   client.print(WiFi.localIP());
-  client.print("/gpio/1';\">D5 ON</button>");
+  client.print("/gpio/d5';\">D5 ON</button>");
   client.print(F("<br><br><button onClick=\"window.location.href='http://"));
   client.print(WiFi.localIP());
-  client.print("/gpio/2';\">D4 ON</button>");
+  client.print("/gpio/d4';\">D4 ON</button>");
+  client.print(F("<br><br><button onClick=\"window.location.href='http://"));
+  client.print(WiFi.localIP());
+  client.print("/gpio/d6';\">D6 ON</button>");
   client.print(F("\r\n"));
   client.print(F("<br><br><button onClick=\"window.location.href='http://"));
   client.print(WiFi.localIP());
-  client.print("/gpio/3';\">D5 & D4 ON</button>");
-  client.print(F("<br><br><button onClick=\"window.location.href='http://"));
-  client.print(WiFi.localIP());
-  client.print("/gpio/0';\">D5 & D4 OFF</button>");
+  client.print("/gpio/reset';\">reset</button>");
+  client.print(F("\r\n"));
+  
  
   client.print(F("</html>"));
 
